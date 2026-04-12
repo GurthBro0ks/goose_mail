@@ -1,0 +1,11 @@
+{
+  "extensions": [
+    {
+      "name": "goose-mail",
+      "type": "stdio",
+      "cmd": "/home/mint/projects/goose_mail/.venv/bin/python",
+      "args": ["-m", "goose_mail"],
+      "env": {}
+    }
+  ]
+}

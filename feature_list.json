@@ -57,7 +57,7 @@
       "id": "gm-005",
       "description": "Goose Desktop can load the extension as a STDIO custom extension and expose the stub tool",
       "priority": "high",
-      "passes": false,
+      "passes": true,
       "risk": "medium",
       "plan": [
         "Document the absolute command path for Goose Desktop",

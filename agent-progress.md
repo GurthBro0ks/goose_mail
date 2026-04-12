@@ -4,6 +4,30 @@
 
 ---
 
+## Session: 2026-04-12 — gm-005 complete
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Created `goose-mail-extension.json` sample config with STDIO extension definition
+- Rewrote `README.md` with install, run, and Goose Desktop setup instructions
+- Documented both config-file and manual-entry approaches for Goose Desktop
+- Goose Desktop command: `/home/mint/projects/goose_mail/.venv/bin/python -m goose_mail`
+- Truth gate: `ruff check .` → All checks passed; `pytest -v` → 7 passed
+- Updated `feature_list.json`: gm-005 passes=true
+**What needs to happen next:**
+- gm-006: Read-only IMAP configuration layer
+**Manual verification procedure for Goose Desktop:**
+1. Open Goose Desktop → Settings → Extensions → Add Custom Extension (STDIO)
+2. Command: `/home/mint/projects/goose_mail/.venv/bin/python`
+3. Args: `-m goose_mail`
+4. Save, then ask Goose: "Use the ping tool from goose-mail"
+5. Expected: `{"ok": true, "service": "goose_mail", "version": "0.1.0"}`
+6. Alternatively: `cp goose-mail-extension.json ~/.config/goose/extensions.d/`
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — gm-004 complete
 
 **Agent:** opencode (glm-5.1)
