@@ -222,6 +222,7 @@ class TestReadMessage:
         )
         data = json.loads(result[0].text)
         required_keys = {
+            "ok",
             "account_id",
             "provider",
             "folder",

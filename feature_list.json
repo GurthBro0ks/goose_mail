@@ -103,6 +103,20 @@
         "Do not support attachments in first pass unless trivial",
         "Test with mocks and document manual self-send smoke test"
       ]
+    },
+    {
+      "id": "gm-009",
+      "description": "Real IMAP runtime integration for list_folders, search_mail, read_message with structured errors",
+      "priority": "high",
+      "passes": true,
+      "risk": "medium",
+      "plan": [
+        "Create RealImapClient using imaplib",
+        "Wire into tools with fake fallback for tests",
+        "Return structured error codes for auth/connection/folder/message failures",
+        "Keep tests mocked with FakeImapClient",
+        "Verify SMTP send path still works"
+      ]
     }
   ]
 }

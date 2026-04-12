@@ -72,3 +72,21 @@ ruff format .       # format
 | Tool | Description |
 |------|-------------|
 | `ping` | Health check — returns service name and version |
+| `list_accounts` | List enabled mail accounts |
+| `list_folders` | List IMAP folders for an account (real IMAP) |
+| `search_mail` | Search messages by subject/from (real IMAP) |
+| `read_message` | Read a full message with normalized output (real IMAP) |
+| `send_mail` | Send email via SMTP |
+
+## Manual IMAP smoke test
+
+1. Copy `config/accounts.example.yaml` to `config/accounts.yaml` and fill in your account details.
+2. Export credentials:
+   ```bash
+   export GMAIL_USER=you@gmail.com
+   export GMAIL_PASS=your-app-password
+   ```
+3. Start the server and test via Goose Desktop:
+   - `list_folders(account_id="your-account-id")` → should return real folder names
+   - `search_mail(account_id="your-account-id", query="test")` → real search results
+   - `read_message(account_id="your-account-id", message_id="<uid>")` → real message

@@ -4,6 +4,40 @@
 
 ---
 
+## Session: 2026-04-12 — Real IMAP runtime integration (gm-009)
+
+**Agent:** opencode (glm-5.1)
+**What changed:**
+- Created `src/goose_mail/mail/real_imap_client.py` — `RealImapClient` using `imaplib`, connects to real IMAP servers via config presets, reads credentials from env vars, structured error codes (AUTH_MISSING, AUTH_FAILED, CONNECTION_FAILED, BAD_FOLDER, LIST_FAILED, SEARCH_FAILED, MESSAGE_NOT_FOUND)
+- Updated `src/goose_mail/tools/folders.py` — defaults to `RealImapClient` when no `client_factory` provided, returns structured `{ok, account_id, folders, count}` or `{ok: false, error: {code, message}}`
+- Updated `src/goose_mail/tools/search.py` — defaults to `RealImapClient`, returns structured `{ok, results, count}` or error
+- Updated `src/goose_mail/tools/read.py` — defaults to `RealImapClient`, returns full normalized message with `ok: true` or error
+- Updated `tests/test_mail_tools.py` — adjusted `test_normalized_shape` for new `ok` field in read_message output
+- All existing tests still use `FakeImapClient` via `client_factory` — no live network in tests
+- SMTP send path untouched and still working
+
+**What now uses real IMAP:**
+- `list_folders` — real `imaplib.IMAP4_SSL` connection, LIST command
+- `search_mail` — real SEARCH (OR SUBJECT/FROM), FETCH RFC822 + FLAGS
+- `read_message` — real FETCH RFC822 + FLAGS, MIME parsing via existing `mime_parser.py`
+
+**What is still mocked in tests:**
+- All 92 tests pass with `FakeImapClient` via `client_factory=lambda _a: FakeImapClient()`
+- No live network calls in test suite
+
+**Manual smoke steps:**
+1. Create `config/accounts.yaml` from `config/accounts.example.yaml`
+2. Set env vars for your account (e.g. `export GMAIL_USER=you@gmail.com GMAIL_PASS=app-password`)
+3. Start server: `python -m goose_mail`
+4. Via Goose Desktop: try `list_folders`, `search_mail`, `read_message`
+5. Expected: real folder list, real search results, real message content
+
+**Truth gate:** `ruff check .` → All checks passed; `pytest -v` → 92 passed
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — Diagnostic: Goose Desktop not loading extension
 
 **Agent:** opencode (glm-5.1)
