@@ -69,7 +69,7 @@
       "id": "gm-006",
       "description": "Read-only IMAP configuration layer implemented with account validation and provider profiles",
       "priority": "high",
-      "passes": false,
+      "passes": true,
       "risk": "medium",
       "plan": [
         "Add config models for accounts",

@@ -5,6 +5,7 @@ Summary: Local MCP server extension for Goose — mail tools over STDIO
 License-Expression: MIT
 Requires-Python: >=3.10
 Requires-Dist: mcp>=1.0
+Requires-Dist: pyyaml>=6.0
 Provides-Extra: dev
 Requires-Dist: pytest>=7.0; extra == "dev"
 Requires-Dist: ruff>=0.4; extra == "dev"

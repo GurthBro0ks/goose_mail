@@ -2,10 +2,14 @@ README.md
 pyproject.toml
 src/goose_mail/__init__.py
 src/goose_mail/__main__.py
+src/goose_mail/config.py
+src/goose_mail/errors.py
+src/goose_mail/models.py
 src/goose_mail/server.py
 src/goose_mail.egg-info/PKG-INFO
 src/goose_mail.egg-info/SOURCES.txt
 src/goose_mail.egg-info/dependency_links.txt
 src/goose_mail.egg-info/requires.txt
 src/goose_mail.egg-info/top_level.txt
+tests/test_config.py
 tests/test_smoke.py

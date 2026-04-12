@@ -4,6 +4,26 @@
 
 ---
 
+## Session: 2026-04-12 — gm-006 complete
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Created `src/goose_mail/errors.py` — structured error hierarchy (ConfigError, MissingFieldError, InvalidProviderError, ConfigFileError)
+- Created `src/goose_mail/models.py` — frozen dataclasses for ImapSettings, SmtpSettings, AuthRef, AccountConfig, MailConfig with to_dict()
+- Created `src/goose_mail/config.py` — provider presets (gmail, outlook, ionos, generic), YAML config loading, account parsing, validation
+- Added `pyyaml>=6.0` dependency to pyproject.toml
+- Created `config/accounts.example.yaml` with examples for all 4 providers
+- Created `tests/test_config.py` with 30 tests covering presets, parsing, errors, file loading, validation, serialization
+- Truth gate: `ruff check .` → All checks passed; `pytest -v` → 37 passed
+- Secrets referenced only by env var names; no secret values in exceptions or logs
+- Updated `feature_list.json`: gm-006 passes=true
+**What needs to happen next:**
+- gm-007: Read-only mail tools (list_accounts, list_folders, search_mail, read_message)
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — gm-005 complete
 
 **Agent:** opencode (glm-5.1)

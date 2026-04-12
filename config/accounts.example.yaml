@@ -1,0 +1,46 @@
+# goose_mail accounts configuration
+# Copy this file to config/accounts.yaml and edit as needed.
+# Secrets are referenced by environment variable name only.
+
+accounts:
+  - id: work-gmail
+    provider: gmail
+    email: user@gmail.com
+    enabled: true
+    auth:
+      username_env: GMAIL_USER
+      password_env: GMAIL_APP_PASSWORD
+
+  - id: personal-outlook
+    provider: outlook
+    email: user@outlook.com
+    enabled: true
+    auth:
+      username_env: OUTLOOK_USER
+      password_env: OUTLOOK_APP_PASSWORD
+
+  - id: ionos-work
+    provider: ionos
+    email: user@example.com
+    enabled: true
+    auth:
+      username_env: IONOS_USER
+      password_env: IONOS_PASSWORD
+
+  # Generic provider — must supply imap (and optionally smtp) explicitly
+  # - id: custom
+  #   provider: generic
+  #   email: user@example.org
+  #   enabled: true
+  #   imap:
+  #     host: imap.example.org
+  #     port: 993
+  #     ssl: true
+  #   smtp:
+  #     host: smtp.example.org
+  #     port: 587
+  #     ssl: false
+  #     starttls: true
+  #   auth:
+  #     username_env: CUSTOM_IMAP_USER
+  #     password_env: CUSTOM_IMAP_PASSWORD
