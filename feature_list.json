@@ -82,7 +82,7 @@
       "id": "gm-007",
       "description": "Read-only mail tools implemented: list_accounts, list_folders, search_mail, read_message",
       "priority": "high",
-      "passes": false,
+      "passes": true,
       "risk": "medium",
       "plan": [
         "Implement IMAP client wrapper",

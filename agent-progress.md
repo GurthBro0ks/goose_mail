@@ -4,6 +4,35 @@
 
 ---
 
+## Session: 2026-04-12 — gm-007 complete
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Created `src/goose_mail/mail/` package with:
+  - `__init__.py`
+  - `imap_client.py` — ImapClient protocol + FakeImapClient with fixture data (2 emails: simple text + multipart with attachment)
+  - `mime_parser.py` — parse_message, html_to_text, parse_addresses, parse_flags, attachment extraction
+- Created `src/goose_mail/tools/` package with:
+  - `__init__.py` — find_account helper
+  - `accounts.py` — list_accounts tool (returns enabled accounts, no secrets)
+  - `folders.py` — list_folders tool
+  - `search.py` — search_mail tool (compact results, no body/attachments)
+  - `read.py` — read_message tool (full normalized output per spec)
+- Updated `server.py` — create_server accepts config_path + client_factory, registers all 5 tools
+- Created `tests/test_mime_parser.py` — 16 tests for address parsing, HTML-to-text, flags, message parsing
+- Created `tests/test_mail_tools.py` — 16 tests for all 4 mail tools + error cases
+- All tools return structured dicts (accounts/folders/search wrapped in envelope dicts)
+- MIME parser: plain-text preference, HTML-to-text fallback, attachment metadata only
+- No secrets leak in any output; env var names excluded from list_accounts
+- Truth gate: `ruff check .` → All checks passed; `pytest -v` → 75 passed
+- Updated `feature_list.json`: gm-007 passes=true
+**What needs to happen next:**
+- gm-008: SMTP send_mail with structured results and safe logging
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — gm-006 complete
 
 **Agent:** opencode (glm-5.1)
