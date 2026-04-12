@@ -22,7 +22,7 @@
       "id": "gm-002",
       "description": "Ruff lint passes across the codebase with zero errors",
       "priority": "critical",
-      "passes": false,
+      "passes": true,
       "risk": "low",
       "plan": [
         "Add ruff config to pyproject.toml",

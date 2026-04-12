@@ -4,6 +4,23 @@
 
 ---
 
+## Session: 2026-04-12 — gm-002 complete
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Verified ruff config already present in `pyproject.toml` (target-version, line-length, lint select rules)
+- Confirmed ruff is listed as a dev dependency and installed
+- Ran truth gate: `ruff check .` → All checks passed; `pytest -v` → 2 passed
+- Updated `feature_list.json`: gm-002 passes=true
+- No code changes required — lint was already green from gm-001 bootstrap
+**What needs to happen next:**
+- gm-003 (pytest smoke) is already satisfied by existing tests
+- Next real work: gm-004 (MCP server boots with one stub tool)
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — gm-001 complete
 
 **Agent:** opencode (glm-5.1)
