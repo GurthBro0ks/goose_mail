@@ -1,11 +1,10 @@
 {
-  "extensions": [
-    {
-      "name": "goose-mail",
-      "type": "stdio",
-      "cmd": "/home/mint/projects/goose_mail/.venv/bin/python",
-      "args": ["-m", "goose_mail"],
-      "env": {}
-    }
-  ]
+  "type": "stdio",
+  "name": "Goose Mail",
+  "description": "Mail tools for Goose: list accounts, folders, search and read messages, send mail via SMTP",
+  "cmd": "/home/mint/projects/goose_mail/.venv/bin/python",
+  "args": ["-m", "goose_mail"],
+  "envs": {},
+  "env_keys": [],
+  "timeout": 300
 }

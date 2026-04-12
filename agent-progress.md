@@ -4,6 +4,25 @@
 
 ---
 
+## Session: 2026-04-12 — Diagnostic: Goose Desktop not loading extension
+
+**Agent:** opencode (glm-5.1)
+**Confirmed root cause:**
+1. The Goose config entry was structurally correct (cmd/args properly split, type: stdio, enabled: true)
+2. However, the earlier gooded session (10:48 AM) loaded goosemail lazily and it crashed within 0.5s: `Failed to list tools extension=goosemail error=Transport closed`
+3. The subsequent session (11:16 AM) never attempted to load goosemail — Goose Desktop cached the failure
+4. The MCP server itself was healthy all along (verified by manual MCP handshake: initialize + tools/list returns all 6 tools)
+5. The only structural difference between goosemail and other working STDIO extensions was an empty `description: ''`
+**Fix applied:**
+- Added a proper `description` to the goosemail entry in `~/.config/goose/config.yaml`
+- Updated `goose-mail-extension.json` sample config to match Goose Desktop's actual config format
+**Action required by user:** Restart Goose Desktop to clear the cached failure and force a fresh extension load. The server is confirmed healthy via manual MCP handshake.
+**Repo changes:** `goose-mail-extension.json` updated to match Goose Desktop config format
+**Environment state:** .venv active, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — gm-008 complete
 
 **Agent:** opencode (glm-5.1)
