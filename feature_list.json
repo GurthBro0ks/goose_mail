@@ -33,7 +33,7 @@
       "id": "gm-003",
       "description": "pytest runs and at least one smoke test passes",
       "priority": "critical",
-      "passes": false,
+      "passes": true,
       "risk": "low",
       "plan": [
         "Create tests/test_smoke.py",

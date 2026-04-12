@@ -4,6 +4,22 @@
 
 ---
 
+## Session: 2026-04-12 — gm-003 complete
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Verified pytest config in `pyproject.toml` (`testpaths = ["tests"]`)
+- Added `test_main_entrypoint` smoke test verifying `python -m goose_mail` works
+- Now 3 intentional smoke tests: version, import, main entrypoint behavior
+- Ran truth gate: `ruff check .` → All checks passed; `pytest -v` → 3 passed
+- Updated `feature_list.json`: gm-003 passes=true
+**What needs to happen next:**
+- gm-004: MCP server boots locally with one stub tool over STDIO
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — gm-002 complete
 
 **Agent:** opencode (glm-5.1)
