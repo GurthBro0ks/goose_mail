@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from mcp.server.fastmcp import FastMCP
 
 from goose_mail import __version__
@@ -9,13 +11,15 @@ from goose_mail.tools.read import register as reg_read
 from goose_mail.tools.search import register as reg_search
 from goose_mail.tools.send import register as reg_send
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 
 def create_server(
     config_path: str | None = None,
     client_factory=None,
     smtp_factory=None,
 ) -> FastMCP:
-    cfg_path = config_path or "config/accounts.yaml"
+    cfg_path = config_path or str(_PROJECT_ROOT / "config" / "accounts.yaml")
     mcp = FastMCP("goose_mail")
 
     @mcp.tool()
