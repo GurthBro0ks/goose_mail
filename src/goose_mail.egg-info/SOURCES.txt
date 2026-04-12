@@ -11,5 +11,15 @@ src/goose_mail.egg-info/SOURCES.txt
 src/goose_mail.egg-info/dependency_links.txt
 src/goose_mail.egg-info/requires.txt
 src/goose_mail.egg-info/top_level.txt
+src/goose_mail/mail/__init__.py
+src/goose_mail/mail/imap_client.py
+src/goose_mail/mail/mime_parser.py
+src/goose_mail/tools/__init__.py
+src/goose_mail/tools/accounts.py
+src/goose_mail/tools/folders.py
+src/goose_mail/tools/read.py
+src/goose_mail/tools/search.py
 tests/test_config.py
+tests/test_mail_tools.py
+tests/test_mime_parser.py
 tests/test_smoke.py

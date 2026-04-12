@@ -7,11 +7,13 @@ from goose_mail.tools.accounts import register as reg_accounts
 from goose_mail.tools.folders import register as reg_folders
 from goose_mail.tools.read import register as reg_read
 from goose_mail.tools.search import register as reg_search
+from goose_mail.tools.send import register as reg_send
 
 
 def create_server(
     config_path: str | None = None,
     client_factory=None,
+    smtp_factory=None,
 ) -> FastMCP:
     cfg_path = config_path or "config/accounts.yaml"
     mcp = FastMCP("goose_mail")
@@ -24,6 +26,7 @@ def create_server(
     reg_folders(mcp, cfg_path, client_factory)
     reg_search(mcp, cfg_path, client_factory)
     reg_read(mcp, cfg_path, client_factory)
+    reg_send(mcp, cfg_path, smtp_factory)
 
     return mcp
 

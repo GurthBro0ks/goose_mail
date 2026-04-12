@@ -4,6 +4,31 @@
 
 ---
 
+## Session: 2026-04-12 — gm-008 complete
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Created `src/goose_mail/mail/smtp_client.py` — SmtpClient protocol, FakeSmtpClient (records sends), build_message helper
+- Created `src/goose_mail/tools/send.py` — send_mail tool with input validation, SMTP config check, structured success/error results
+- Updated `server.py` — added smtp_factory parameter, registers send_mail tool
+- Created `tests/test_send_mail.py` — 17 tests covering:
+  - build_message: plain text, CC, no CC header, HTML alternative, multiple recipients
+  - FakeSmtpClient: send recording, multiple sends
+  - send_mail tool: success, CC/BCC, HTML, SMTP not configured, empty to, empty subject, unknown account, no secrets in output, success/error shapes
+- All errors structured with code + message; no secrets leaked
+- No attachment support in this pass (as specified)
+- Truth gate: `ruff check .` → All checks passed; `pytest -v` → 92 passed
+- Updated `feature_list.json`: gm-008 passes=true
+**All 8 features now complete.**
+**Manual verification for live SMTP:**
+1. Create `config/accounts.yaml` from `config/accounts.example.yaml`
+2. Set env vars for your account credentials
+3. Run `python -m goose_mail` and use send_mail via Goose Desktop
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — gm-007 complete
 
 **Agent:** opencode (glm-5.1)

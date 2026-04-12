@@ -95,7 +95,7 @@
       "id": "gm-008",
       "description": "SMTP send_mail implemented with structured success/error results and safe logging",
       "priority": "medium",
-      "passes": false,
+      "passes": true,
       "risk": "high",
       "plan": [
         "Implement SMTP send_mail",
