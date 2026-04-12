@@ -44,7 +44,7 @@
       "id": "gm-004",
       "description": "MCP server boots locally with one stub tool and no crash over STDIO",
       "priority": "high",
-      "passes": false,
+      "passes": true,
       "risk": "medium",
       "plan": [
         "Add MCP server dependency and server bootstrap",

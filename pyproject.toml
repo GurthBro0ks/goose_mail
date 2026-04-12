@@ -8,6 +8,9 @@ version = "0.1.0"
 description = "Local MCP server extension for Goose — mail tools over STDIO"
 requires-python = ">=3.10"
 license = "MIT"
+dependencies = [
+    "mcp>=1.0",
+]
 
 [project.optional-dependencies]
 dev = [

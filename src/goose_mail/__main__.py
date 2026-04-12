@@ -1,8 +1,8 @@
-from goose_mail import __version__
+from goose_mail.server import server
 
 
 def main() -> None:
-    print(f"goose_mail {__version__} — MCP server stub (not yet wired)")
+    server.run()
 
 
 if __name__ == "__main__":

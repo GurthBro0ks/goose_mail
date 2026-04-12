@@ -4,6 +4,28 @@
 
 ---
 
+## Session: 2026-04-12 — gm-004 complete
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Added `mcp>=1.0` as a runtime dependency in `pyproject.toml`
+- Created `src/goose_mail/server.py` with FastMCP server and `ping` tool returning `{"ok": true, "service": "goose_mail", "version": "0.1.0"}`
+- Updated `src/goose_mail/__main__.py` to call `server.run()` (STDIO transport)
+- Added 4 new tests: server module import, server create, ping tool registered, ping tool handler
+- All 7 tests pass (2 async via pytest-anyio)
+- Truth gate: `ruff check .` → All checks passed; `pytest -v` → 7 passed
+- Local smoke check: `python -m goose_mail` starts without crash (exits 0 via timeout in test)
+- Updated `feature_list.json`: gm-004 passes=true
+**What needs to happen next:**
+- gm-005: Goose Desktop can load the extension as a STDIO custom extension
+**Manual verification note:**
+- Full STDIO handshake test is deferred; `python -m goose_mail` boots without immediate crash
+- A live MCP handshake with `mcp` client library or Goose Desktop is the next integration step
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Clean before this session
+
+---
+
 ## Session: 2026-04-12 — gm-003 complete
 
 **Agent:** opencode (glm-5.1)
