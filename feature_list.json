@@ -1,0 +1,108 @@
+{
+  "_meta": {
+    "project": "goose_mail",
+    "last_updated": "2026-04-12",
+    "rules": "Pre-start harness retarget to MCP/STDIO approved. After this point, do not remove features. Only update passes after running the truth gate. Add new features at the end. 'risk' is required: low/medium/high."
+  },
+  "features": [
+    {
+      "id": "gm-001",
+      "description": "Repo has pyproject.toml, src layout, and installs cleanly with uv/pip",
+      "priority": "critical",
+      "passes": false,
+      "risk": "low",
+      "plan": [
+        "Create pyproject.toml with project metadata and dev dependencies",
+        "Create src/goose_mail/__init__.py and src/goose_mail/__main__.py",
+        "Run: uv pip install -e '.[dev]' or pip install -e '.[dev]'",
+        "Run: python -c 'import goose_mail; print(goose_mail.__version__)'"
+      ]
+    },
+    {
+      "id": "gm-002",
+      "description": "Ruff lint passes across the codebase with zero errors",
+      "priority": "critical",
+      "passes": false,
+      "risk": "low",
+      "plan": [
+        "Add ruff config to pyproject.toml",
+        "Run: ruff check ."
+      ]
+    },
+    {
+      "id": "gm-003",
+      "description": "pytest runs and at least one smoke test passes",
+      "priority": "critical",
+      "passes": false,
+      "risk": "low",
+      "plan": [
+        "Create tests/test_smoke.py",
+        "Run: pytest -v"
+      ]
+    },
+    {
+      "id": "gm-004",
+      "description": "MCP server boots locally with one stub tool and no crash over STDIO",
+      "priority": "high",
+      "passes": false,
+      "risk": "medium",
+      "plan": [
+        "Add MCP server dependency and server bootstrap",
+        "Implement one safe stub tool such as ping or list_accounts returning static data",
+        "Create __main__.py entrypoint",
+        "Verify import/bootstrap with tests and a local launch smoke check"
+      ]
+    },
+    {
+      "id": "gm-005",
+      "description": "Goose Desktop can load the extension as a STDIO custom extension and expose the stub tool",
+      "priority": "high",
+      "passes": false,
+      "risk": "medium",
+      "plan": [
+        "Document the absolute command path for Goose Desktop",
+        "Add a sample extension config/example command",
+        "Manual verify in Goose Desktop that the tool is visible"
+      ]
+    },
+    {
+      "id": "gm-006",
+      "description": "Read-only IMAP configuration layer implemented with account validation and provider profiles",
+      "priority": "high",
+      "passes": false,
+      "risk": "medium",
+      "plan": [
+        "Add config models for accounts",
+        "Support generic, Gmail, Outlook, and IONOS profile presets",
+        "Load secrets from env vars only",
+        "Test config validation without real credentials"
+      ]
+    },
+    {
+      "id": "gm-007",
+      "description": "Read-only mail tools implemented: list_accounts, list_folders, search_mail, read_message",
+      "priority": "high",
+      "passes": false,
+      "risk": "medium",
+      "plan": [
+        "Implement IMAP client wrapper",
+        "Implement MIME parsing and HTML-to-text fallback",
+        "Normalize message/search outputs",
+        "Test with mocks and fixtures only"
+      ]
+    },
+    {
+      "id": "gm-008",
+      "description": "SMTP send_mail implemented with structured success/error results and safe logging",
+      "priority": "medium",
+      "passes": false,
+      "risk": "high",
+      "plan": [
+        "Implement SMTP send_mail",
+        "Return structured results only",
+        "Do not support attachments in first pass unless trivial",
+        "Test with mocks and document manual self-send smoke test"
+      ]
+    }
+  ]
+}
