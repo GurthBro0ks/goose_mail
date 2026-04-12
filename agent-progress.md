@@ -4,6 +4,25 @@
 
 ---
 
+## Session: 2026-04-12 — gm-001 complete
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Created `pyproject.toml` with setuptools build, src layout, ruff + pytest dev deps
+- Created `src/goose_mail/__init__.py` with `__version__ = "0.1.0"`
+- Created `src/goose_mail/__main__.py` with stub entrypoint
+- Created `tests/test_smoke.py` with 2 passing tests (version + import)
+- Installed with `uv pip install -e ".[dev]"` — all 7 packages resolved
+- Truth gate: `ruff check .` → All checks passed; `pytest -v` → 2 passed
+- Updated `feature_list.json`: gm-001 passes=true
+**What needs to happen next:**
+- gm-002 (ruff config) and gm-003 (pytest smoke) are effectively already satisfied
+- Next real work: gm-004 (MCP server boots with one stub tool)
+**Environment state:** .venv active, project installed editable, lint + tests green
+**Git state:** Working tree dirty with gm-001 artifacts
+
+---
+
 ## Session: 2026-04-12 (Harness retargeted to MCP/STDIO)
 
 **Agent:** Human (pre-start harness correction)

@@ -9,7 +9,7 @@
       "id": "gm-001",
       "description": "Repo has pyproject.toml, src layout, and installs cleanly with uv/pip",
       "priority": "critical",
-      "passes": false,
+      "passes": true,
       "risk": "low",
       "plan": [
         "Create pyproject.toml with project metadata and dev dependencies",
