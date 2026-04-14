@@ -4,6 +4,26 @@
 
 ---
 
+## Session: 2026-04-14 — Desktop launcher wrapper for mail environment
+
+**Agent:** opencode (glm-5.1)
+**What was done:**
+- Created `/home/mint/bin/goose-with-mail` — bash wrapper that sources `~/.profile` and `~/.bashrc`, verifies required env var names exist (GMAIL_USER, GMAIL_APP_PASSWORD, IONOS_USER, IONOS_PASSWORD), and execs `goose "$@"`
+- Wrapper never prints secret values; only prints missing var names to stderr
+- Added `--check-env` diagnostic mode that reports present/missing for each required var
+- Created `/home/mint/.local/share/applications/goose-with-mail.desktop` — separate desktop entry (Name: Goose (Mail Env)) that uses the wrapper as Exec; existing `/usr/share/applications/goose.desktop` left untouched
+- Added desktop launcher troubleshooting section to README.md
+**Validation:**
+- `--check-env` confirms all 4 env vars present after sourcing
+- Wrapper is executable (`chmod +x`)
+- Desktop entry installed and desktop database updated
+- `ruff check .` → All checks passed
+- `pytest -v` → 92 passed
+**Repo changes:** `README.md`, `agent-progress.md`
+**Non-repo files:** `/home/mint/bin/goose-with-mail`, `/home/mint/.local/share/applications/goose-with-mail.desktop`
+
+---
+
 ## Session: 2026-04-13 — AUTH_FAILED diagnostic for Gmail and IONOS
 
 **Agent:** opencode (glm-5.1)

@@ -90,3 +90,21 @@ ruff format .       # format
    - `list_folders(account_id="your-account-id")` → should return real folder names
    - `search_mail(account_id="your-account-id", query="test")` → real search results
    - `read_message(account_id="your-account-id", message_id="<uid>")` → real message
+
+## Desktop launcher troubleshooting
+
+When Goose is launched from the desktop menu, it does not source `~/.profile`
+or `~/.bashrc`, so the mail-related environment variables (`GMAIL_USER`,
+`GMAIL_APP_PASSWORD`, `IONOS_USER`, `IONOS_PASSWORD`) are not available.
+This causes `goose_mail` to fail with `AUTH_MISSING` errors.
+
+To fix this, use the wrapper launcher `~/bin/goose-with-mail` which sources
+the user environment before starting Goose. A desktop entry is installed at
+`~/.local/share/applications/goose-with-mail.desktop` (shows as **Goose (Mail
+Env)** in the desktop menu).
+
+Check whether all required env vars are present:
+
+```bash
+~/bin/goose-with-mail --check-env
+```
