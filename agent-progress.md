@@ -4,6 +4,45 @@
 
 ---
 
+## Session: 2026-04-13 — AUTH_FAILED diagnostic for Gmail and IONOS
+
+**Agent:** opencode (glm-5.1)
+**Issue:** Both Gmail and IONOS accounts return AUTH_FAILED on real IMAP runtime.
+**Root cause:** BAD CREDENTIALS / PROVIDER REJECTION — no code bug.
+
+**Proof — direct imaplib tests (outside goose_mail):**
+
+| Provider | Host:Port:SSL | User | Exception |
+|---|---|---|---|
+| Gmail | imap.gmail.com:993/SSL | whoompagee@gmail.com | `imaplib.IMAP4.error: b'[ALERT] Application-specific password required'` |
+| IONOS | imap.ionos.com:993/SSL | gurth@slimyai.xyz | `imaplib.IMAP4.error: b'authentication failed'` |
+
+**Proof — goose_mail runtime produces identical results:**
+- `RealImapClient` for gmail-w: `ImapError code=AUTH_FAILED` with same Gmail alert message
+- `RealImapClient` for gurth: `ImapError code=AUTH_FAILED` with same IONOS rejection message
+
+**Parameter comparison (direct test vs goose_mail code):**
+- Host: identical (from PROVIDER_PRESETS in config.py)
+- Port: identical (993)
+- SSL: identical (True)
+- Username env var: identical (GMAIL_USER / IONOS_USER)
+- Password env var: identical (GMAIL_APP_PASSWORD / IONOS_PASSWORD)
+- Login call sequence: identical (IMAP4_SSL → conn.login)
+
+**Why each provider rejects:**
+1. Gmail: The value in `GMAIL_APP_PASSWORD` is a regular password. Gmail requires an App Password (16-char `xxxx xxxx xxxx xxxx` format) when 2FA is enabled. Fix: generate an App Password at https://myaccount.google.com/apppasswords
+2. IONOS: The value in `IONOS_PASSWORD` is rejected by IONOS IMAP. Fix: verify the correct IMAP password is set, and confirm IMAP is enabled in the IONOS control panel.
+
+**Code changes:** NONE — real_imap_client.py is correct. The code correctly connects, correctly looks up env vars, and correctly catches/reports auth failures.
+**Truth gate:** `ruff check .` → All checks passed; `pytest -v` → 92 passed
+**Resolution:**
+- Gmail: User provided valid App Password. Gmail direct IMAP login → SUCCESS (20 folders). goose_mail `RealImapClient` for gmail-w → SUCCESS (20 folders).
+- IONOS: User provided corrected password. IONOS direct IMAP login → SUCCESS (5 folders). goose_mail `RealImapClient` for gurth → SUCCESS (5 folders).
+- Fixed `~/.profile`: removed duplicate old entries, stripped leading space from GMAIL_APP_PASSWORD value (was `" fszk rzzl bknf kmjb"`, now `"fszkrzzlbknfkmjb"` — spaces removed per Gmail app-password convention).
+**Repo changes:** Only `agent-progress.md` updated (diagnostic log). No source code changes needed.
+
+---
+
 ## Session: 2026-04-12 — Real IMAP runtime integration (gm-009)
 
 **Agent:** opencode (glm-5.1)
