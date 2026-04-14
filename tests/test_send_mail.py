@@ -1,4 +1,5 @@
 import json
+import re
 
 import pytest
 import yaml
@@ -22,22 +23,89 @@ def _write_config(tmp_path, accounts=None):
     return str(p)
 
 
-def _make_server(tmp_path, accounts=None):
+def _make_server(tmp_path, accounts=None, imap_factory=None):
     cfg_path = _write_config(tmp_path, accounts)
     return create_server(
         config_path=cfg_path,
         smtp_factory=lambda _settings: FakeSmtpClient(),
+        imap_factory=imap_factory,
     )
 
 
-def _make_server_with_capture(tmp_path, accounts=None):
+def _make_server_with_capture(tmp_path, accounts=None, imap_factory=None):
     cfg_path = _write_config(tmp_path, accounts)
     client = FakeSmtpClient()
     mcp = create_server(
         config_path=cfg_path,
         smtp_factory=lambda _settings: client,
+        imap_factory=imap_factory,
     )
     return mcp, client
+
+
+class FakeImapClientForAppend:
+    def __init__(self, folders=None):
+        self._folders = folders or ["INBOX", "Sent", "Drafts"]
+        self.appended: list[tuple[str, bytes]] = []
+        self._logout_called = False
+
+    def list_folders(self):
+        return list(self._folders)
+
+    def find_sent_folder(self):
+        for f in self._folders:
+            if f.lower() in ("sent", "[gmail]/sent mail", "inbox.sent", "sent items"):
+                return f
+        return None
+
+    def append_message(self, folder: str, message_bytes: bytes):
+        self.appended.append((folder, message_bytes))
+
+    def logout(self):
+        self._logout_called = True
+
+
+class FakeImapClientAuthFail:
+    def __init__(self, account):
+        from goose_mail.mail.real_imap_client import ImapError
+
+        raise ImapError("AUTH_MISSING", "test auth missing")
+
+    def logout(self):
+        pass
+
+
+class FakeImapClientAppendFail:
+    def __init__(self, account):
+        pass
+
+    def list_folders(self):
+        return ["INBOX", "Sent"]
+
+    def find_sent_folder(self):
+        return "Sent"
+
+    def append_message(self, folder, message_bytes):
+        from goose_mail.mail.real_imap_client import ImapError
+
+        raise ImapError("APPEND_FAILED", "test append fail")
+
+    def logout(self):
+        pass
+
+
+class FakeImapClientNoSent:
+    def __init__(self, account):
+        pass
+
+    def list_folders(self):
+        return ["INBOX", "Drafts", "Trash"]
+
+    def find_sent_folder(self):
+        return None
+
+    def logout(self):
+        pass
 
 
 class TestBuildMessage:
@@ -98,6 +166,55 @@ class TestBuildMessage:
         msg = raw.decode("utf-8")
         assert "b@example.com" in msg
         assert "c@example.com" in msg
+
+    def test_date_header_present(self):
+        raw = build_message(
+            from_addr="a@example.com",
+            to=["b@example.com"],
+            subject="Date",
+            body_text="Body",
+        )
+        msg = raw.decode("utf-8")
+        assert "Date:" in msg
+
+    def test_message_id_header_present(self):
+        raw = build_message(
+            from_addr="a@example.com",
+            to=["b@example.com"],
+            subject="MsgID",
+            body_text="Body",
+        )
+        msg = raw.decode("utf-8")
+        assert "Message-ID:" in msg
+        assert "@example.com>" in msg
+
+    def test_message_id_unique(self):
+        raw1 = build_message(
+            from_addr="a@example.com",
+            to=["b@example.com"],
+            subject="A",
+            body_text="Body",
+        )
+        raw2 = build_message(
+            from_addr="a@example.com",
+            to=["b@example.com"],
+            subject="B",
+            body_text="Body",
+        )
+        id_pattern = re.compile(r"Message-ID: <([^>]+)>")
+        id1 = id_pattern.search(raw1.decode("utf-8")).group(1)
+        id2 = id_pattern.search(raw2.decode("utf-8")).group(1)
+        assert id1 != id2
+
+    def test_mime_version_header_present(self):
+        raw = build_message(
+            from_addr="a@example.com",
+            to=["b@example.com"],
+            subject="MIME",
+            body_text="Body",
+        )
+        msg = raw.decode("utf-8")
+        assert "MIME-Version: 1.0" in msg
 
 
 class TestFakeSmtpClient:
@@ -286,13 +403,8 @@ class TestSendMailTool:
             },
         )
         data = json.loads(result[0].text)
-        assert set(data.keys()) == {
-            "ok",
-            "account_id",
-            "provider",
-            "message",
-            "transport",
-        }
+        required_keys = {"ok", "account_id", "provider", "message", "transport"}
+        assert required_keys.issubset(set(data.keys()))
         assert set(data["message"].keys()) == {"subject", "to", "cc", "bcc"}
         assert set(data["transport"].keys()) == {"host", "port", "ssl"}
 
@@ -320,3 +432,165 @@ class TestSendMailTool:
         data = json.loads(result[0].text)
         assert set(data.keys()) == {"ok", "error"}
         assert set(data["error"].keys()) == {"code", "message"}
+
+
+class TestAppendAfterSend:
+    @pytest.mark.anyio
+    async def test_append_to_sent_success(self, tmp_path):
+        fake_imap = FakeImapClientForAppend()
+        mcp, fake_smtp = _make_server_with_capture(
+            tmp_path,
+            imap_factory=lambda _a: fake_imap,
+        )
+        result = await mcp.call_tool(
+            "send_mail",
+            {
+                "account_id": "test-gmail",
+                "to": ["recipient@example.com"],
+                "subject": "Append test",
+                "body_text": "Body",
+            },
+        )
+        data = json.loads(result[0].text)
+        assert data["ok"] is True
+        assert "sent_folder" in data
+        assert data["sent_folder"]["appended"] is True
+        assert data["sent_folder"]["folder"] == "Sent"
+        assert len(fake_smtp.sent) == 1
+        assert len(fake_imap.appended) == 1
+        assert fake_imap.appended[0][0] == "Sent"
+
+    @pytest.mark.anyio
+    async def test_append_auth_fail_still_succeeds(self, tmp_path):
+        mcp, fake_smtp = _make_server_with_capture(
+            tmp_path,
+            imap_factory=FakeImapClientAuthFail,
+        )
+        result = await mcp.call_tool(
+            "send_mail",
+            {
+                "account_id": "test-gmail",
+                "to": ["recipient@example.com"],
+                "subject": "Auth fail test",
+                "body_text": "Body",
+            },
+        )
+        data = json.loads(result[0].text)
+        assert data["ok"] is True
+        assert "sent_folder" not in data
+        assert len(fake_smtp.sent) == 1
+
+    @pytest.mark.anyio
+    async def test_append_fail_still_succeeds(self, tmp_path):
+        mcp, fake_smtp = _make_server_with_capture(
+            tmp_path,
+            imap_factory=FakeImapClientAppendFail,
+        )
+        result = await mcp.call_tool(
+            "send_mail",
+            {
+                "account_id": "test-gmail",
+                "to": ["recipient@example.com"],
+                "subject": "Append fail test",
+                "body_text": "Body",
+            },
+        )
+        data = json.loads(result[0].text)
+        assert data["ok"] is True
+        assert data["sent_folder"]["appended"] is False
+        assert data["sent_folder"]["reason"] == "APPEND_FAILED"
+        assert len(fake_smtp.sent) == 1
+
+    @pytest.mark.anyio
+    async def test_no_sent_folder_found(self, tmp_path):
+        mcp, fake_smtp = _make_server_with_capture(
+            tmp_path,
+            imap_factory=FakeImapClientNoSent,
+        )
+        result = await mcp.call_tool(
+            "send_mail",
+            {
+                "account_id": "test-gmail",
+                "to": ["recipient@example.com"],
+                "subject": "No sent folder",
+                "body_text": "Body",
+            },
+        )
+        data = json.loads(result[0].text)
+        assert data["ok"] is True
+        assert data["sent_folder"]["appended"] is False
+        assert data["sent_folder"]["reason"] == "no_sent_folder_found"
+
+    @pytest.mark.anyio
+    async def test_gmail_sent_folder_detected(self, tmp_path):
+        fake_imap = FakeImapClientForAppend(
+            folders=["INBOX", "[Gmail]/Sent Mail", "[Gmail]/Drafts"],
+        )
+        mcp, _ = _make_server_with_capture(
+            tmp_path,
+            imap_factory=lambda _a: fake_imap,
+        )
+        result = await mcp.call_tool(
+            "send_mail",
+            {
+                "account_id": "test-gmail",
+                "to": ["recipient@example.com"],
+                "subject": "Gmail sent",
+                "body_text": "Body",
+            },
+        )
+        data = json.loads(result[0].text)
+        assert data["sent_folder"]["appended"] is True
+        assert data["sent_folder"]["folder"] == "[Gmail]/Sent Mail"
+
+    @pytest.mark.anyio
+    async def test_appended_message_matches_smtp_message(self, tmp_path):
+        fake_imap = FakeImapClientForAppend()
+        mcp, fake_smtp = _make_server_with_capture(
+            tmp_path,
+            imap_factory=lambda _a: fake_imap,
+        )
+        await mcp.call_tool(
+            "send_mail",
+            {
+                "account_id": "test-gmail",
+                "to": ["recipient@example.com"],
+                "subject": "Consistency check",
+                "body_text": "Body",
+            },
+        )
+        smtp_bytes = fake_smtp.sent[0]["raw_size"]
+        appended_bytes = len(fake_imap.appended[0][1])
+        assert appended_bytes == smtp_bytes
+
+
+class TestSentFolderDetection:
+    def test_find_sent_folder_standard(self):
+        client = FakeImapClientForAppend(folders=["INBOX", "Sent", "Drafts"])
+        assert client.find_sent_folder() == "Sent"
+
+    def test_find_sent_folder_gmail(self):
+        client = FakeImapClientForAppend(
+            folders=["INBOX", "[Gmail]/Sent Mail", "[Gmail]/Drafts"],
+        )
+        assert client.find_sent_folder() == "[Gmail]/Sent Mail"
+
+    def test_find_sent_folder_sent_items(self):
+        client = FakeImapClientForAppend(
+            folders=["INBOX", "Sent Items", "Drafts"],
+        )
+        assert client.find_sent_folder() == "Sent Items"
+
+    def test_find_sent_folder_inbox_sent(self):
+        client = FakeImapClientForAppend(
+            folders=["INBOX", "INBOX.Sent", "Drafts"],
+        )
+        assert client.find_sent_folder() == "INBOX.Sent"
+
+    def test_find_sent_folder_none(self):
+        client = FakeImapClientForAppend(folders=["INBOX", "Drafts", "Trash"])
+        assert client.find_sent_folder() is None
+
+    def test_find_sent_folder_case_insensitive(self):
+        client = FakeImapClientForAppend(folders=["INBOX", "SENT", "Drafts"])
+        assert client.find_sent_folder() == "SENT"

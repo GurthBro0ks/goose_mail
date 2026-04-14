@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import uuid
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formatdate
 from typing import Protocol
 
 
@@ -50,5 +52,8 @@ def build_message(
     if cc:
         msg["Cc"] = ", ".join(cc)
     msg["Subject"] = subject
+    msg["Date"] = formatdate(localtime=True)
+    msg["Message-ID"] = f"<{uuid.uuid4()}@{from_addr.split('@')[-1]}>"
+    msg["MIME-Version"] = "1.0"
 
     return msg.as_bytes()

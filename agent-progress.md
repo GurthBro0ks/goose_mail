@@ -4,6 +4,41 @@
 
 ---
 
+## Session: 2026-04-14 — Fix sent-message discoverability after SMTP send
+
+**Agent:** opencode (glm-5.1)
+
+**Root cause hypothesis:**
+SMTP acceptance alone was insufficient for sent-message discoverability. Two problems:
+1. `build_message()` was missing RFC-mandated `Date`, `Message-ID`, and `MIME-Version` headers. Without `Message-ID`, providers cannot properly track/deduplicate the message. Without `Date`, the message may be mishandled or filtered.
+2. SMTP only delivers to recipients — it does NOT place a copy in the sender's Sent folder. That is a client-side responsibility (IMAP APPEND). goose_mail was only doing SMTP, so sent messages were invisible when searching via IMAP.
+
+**What was changed:**
+- `src/goose_mail/mail/smtp_client.py` — `build_message()` now adds `Date` (via `email.utils.formatdate`), `Message-ID` (UUID-based with sender domain), and `MIME-Version: 1.0` headers
+- `src/goose_mail/mail/real_imap_client.py` — added `append_message(folder, message_bytes)` using IMAP APPEND with `\Seen` flag; added `find_sent_folder()` that auto-detects the Sent folder across providers (patterns: `[Gmail]/Sent Mail`, `Sent`, `INBOX.Sent`, `Sent Items`, `INBOX.Sent Items`, case-insensitive)
+- `src/goose_mail/tools/send.py` — after SMTP send succeeds, `_try_append_to_sent()` attempts to IMAP APPEND the exact message to the detected Sent folder. This is best-effort: if IMAP auth fails, no Sent folder found, or APPEND fails, SMTP send still succeeds. Result includes optional `sent_folder` key with `{appended, folder, reason}` metadata. Accepts `imap_factory` parameter for testability.
+- `src/goose_mail/server.py` — passes `imap_factory` through to `reg_send`
+- `tests/test_send_mail.py` — added 16 new tests (108 total, up from 92):
+  - `TestBuildMessage`: 4 new tests for Date, Message-ID, unique Message-ID, MIME-Version
+  - `TestAppendAfterSend`: 6 tests for append success, auth fail graceful fallback, append fail fallback, no sent folder, Gmail folder detection, message consistency
+  - `TestSentFolderDetection`: 6 tests for standard Sent, Gmail, Sent Items, INBOX.Sent, none found, case-insensitive
+  - Updated `test_send_success_shape` to use `issubset` check (allows optional `sent_folder` key)
+
+**Whether SMTP acceptance alone was insufficient:**
+Yes. SMTP acceptance only means the server accepted the message for delivery to recipients. The sender's Sent folder copy must be explicitly created via IMAP APPEND. This is standard email client behavior (Thunderbird, Gmail web, etc. all do IMAP APPEND after SMTP).
+
+**Manual smoke-test steps:**
+1. Ensure env vars are set (GMAIL_USER, GMAIL_APP_PASSWORD, IONOS_USER, IONOS_PASSWORD)
+2. Start server: `python -m goose_mail`
+3. Via Goose Desktop: use `send_mail` with account_id, to, subject, body_text
+4. Expected: result includes `"sent_folder": {"appended": true, "folder": "..."}`
+5. Verify: use `search_mail` on the same account, folder matching the sent_folder name — the sent message should be discoverable
+
+**Truth gate:** `ruff check .` → All checks passed; `pytest -v` → 108 passed in 1.20s
+**Repo changes:** `smtp_client.py`, `real_imap_client.py`, `send.py`, `server.py`, `test_send_mail.py`, `agent-progress.md`
+
+---
+
 ## Session: 2026-04-14 — Desktop launcher wrapper for mail environment
 
 **Agent:** opencode (glm-5.1)

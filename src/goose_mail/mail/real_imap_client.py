@@ -128,6 +128,37 @@ class RealImapClient:
                 flags.append(token.rstrip(")"))
         return flags
 
+    def append_message(self, folder: str, message_bytes: bytes) -> None:
+        conn = self._get_conn()
+        status, data = conn.append(
+            f'"{folder}"',
+            "(\\Seen)",
+            message_bytes,
+        )
+        if status != "OK":
+            raise ImapError(
+                "APPEND_FAILED",
+                f"Failed to append message to {folder!r}: {data}",
+            )
+
+    def find_sent_folder(self) -> str | None:
+        SENT_PATTERNS = [
+            "[Gmail]/Sent Mail",
+            "Sent",
+            "INBOX.Sent",
+            "Sent Items",
+            "INBOX.Sent Items",
+        ]
+        try:
+            folders = self.list_folders()
+        except ImapError:
+            return None
+        for pattern in SENT_PATTERNS:
+            for folder in folders:
+                if folder.lower() == pattern.lower():
+                    return folder
+        return None
+
     def logout(self) -> None:
         if self._conn is not None:
             try:
